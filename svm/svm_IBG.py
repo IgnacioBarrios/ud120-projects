@@ -74,5 +74,7 @@ print "accuracy SVC 2 - Lineal: ", accuracy
 
 
 #########################################################
+# Cuantos son del grup de Chris (1)
+sum(pred == 1)
 
 
