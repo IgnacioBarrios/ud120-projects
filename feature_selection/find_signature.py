@@ -35,9 +35,38 @@ features_test  = vectorizer.transform(features_test).toarray()
 features_train = features_train[:150].toarray()
 labels_train   = labels_train[:150]
 
-
-
 ### your code goes here
 
+from sklearn import tree
+clf_2 = tree.DecisionTreeClassifier(min_samples_split=2)
 
+clf_2 = tree.DecisionTreeClassifier()
+clf_2 = clf_2.fit(features_train, labels_train)
+
+acc_train_min_samples_split_2 = clf_2.score(features_train, labels_train)
+acc_test_min_samples_split_2 = clf_2.score(features_test, labels_test)
+
+print "acc_train_min_samples_split_2: ", round(acc_train_min_samples_split_2,3)
+print "acc_test_min_samples_split_2: ", round(acc_test_min_samples_split_2,3)
+
+
+### Identify the Most Powerful Features
+
+importances = clf_2.feature_importances_
+
+indices = numpy.argsort(importances)[::-1]
+
+# Print the feature ranking
+print("Feature ranking:")
+
+#for f in range(X.shape[1]):
+for f in range(0,10):
+    print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
+
+### Get The Most Important Word
+list_words = vectorizer.get_feature_names()
+
+for f in range(0,10):
+    i = indices[f]
+    print("%d. feature %d (%f) Word %s" % (f + 1, i, importances[i], list_words[i]))
 

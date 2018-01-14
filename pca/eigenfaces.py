@@ -29,6 +29,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.decomposition import RandomizedPCA
+from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 
 # Display progress logs on stdout
@@ -70,7 +71,9 @@ n_components = 150
 
 print "Extracting the top %d eigenfaces from %d faces" % (n_components, X_train.shape[0])
 t0 = time()
-pca = RandomizedPCA(n_components=n_components, whiten=True).fit(X_train)
+# deprecated: pca = RandomizedPCA(n_components=n_components, whiten=True).fit(X_train)
+pca = PCA(n_components=n_components, whiten=True, svd_solver='randomized').fit(X_train)
+
 print "done in %0.3fs" % (time() - t0)
 
 eigenfaces = pca.components_.reshape((n_components, h, w))
@@ -144,3 +147,67 @@ eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
 plot_gallery(eigenfaces, eigenface_titles, h, w)
 
 pl.show()
+
+
+### QUIZ 34 Explained Variance of Each PC
+
+print pca.explained_variance_ratio_
+
+
+
+
+### QUIZ 36 Explained Variance of Each PC
+
+from sklearn.metrics import f1_score
+
+print "F1 score: ", f1_score(y_test, y_pred, average='macro')
+
+N_components = [10, 15, 25, 50, 100, 250]
+Scores = []
+for n_components in N_components:
+
+    print "Extracting the top %d eigenfaces from %d faces" % (n_components, X_train.shape[0])
+    t0 = time()
+    # deprecated: pca = RandomizedPCA(n_components=n_components, whiten=True).fit(X_train)
+    pca = PCA(n_components=n_components, whiten=True, svd_solver='randomized').fit(X_train)
+    print "done in %0.3fs" % (time() - t0)
+    
+    eigenfaces = pca.components_.reshape((n_components, h, w))
+    
+    print "Projecting the input data on the eigenfaces orthonormal basis"
+    t0 = time()
+    X_train_pca = pca.transform(X_train)
+    X_test_pca = pca.transform(X_test)
+    print "done in %0.3fs" % (time() - t0)
+
+    ###############################################################################
+    # Train a SVM classification model
+    
+    print "Fitting the classifier to the training set"
+    t0 = time()
+    param_grid = {
+             'C': [1e3, 5e3, 1e4, 5e4, 1e5],
+              'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1],
+              }
+    # for sklearn version 0.16 or prior, the class_weight parameter value is 'auto'
+    clf = GridSearchCV(SVC(kernel='rbf', class_weight='balanced'), param_grid)
+    clf = clf.fit(X_train_pca, y_train)
+    print "done in %0.3fs" % (time() - t0)
+    print "Best estimator found by grid search:"
+    print clf.best_estimator_
+    
+    
+    ###############################################################################
+    # Quantitative evaluation of the model quality on the test set
+    
+    print "Predicting the people names on the testing set"
+    t0 = time()
+    y_pred = clf.predict(X_test_pca)
+    print "done in %0.3fs" % (time() - t0)
+    
+    print classification_report(y_test, y_pred, target_names=target_names)
+    print confusion_matrix(y_test, y_pred, labels=range(n_classes))
+    
+    score = f1_score(y_test, y_pred, average='macro')
+    Scores.append(score)
+    print  "F1 score %0.3f with %d eigenfaces" % (score, n_components) 
