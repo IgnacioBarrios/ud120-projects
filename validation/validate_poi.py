@@ -28,5 +28,29 @@ labels, features = targetFeatureSplit(data)
 
 
 ### it's all yours from here forward!  
+features_train = features
+labels_train = labels
 
+features_test = features
+labels_test = labels
+
+from sklearn import tree
+Tree = tree.DecisionTreeClassifier()
+Tree = Tree.fit(features_train, labels_train)
+acc_ = Tree.score(features_test, labels_test)
+
+print "Accuracy all the data: ", round(acc_,3)
+
+# Quiz 17: Deploying A Training/Testing Regime
+
+# Split features in train and test 
+
+from sklearn import cross_validation 
+features_train, features_test, labels_train, labels_test = cross_validation.train_test_split(features, labels, test_size = 0.3, random_state=42)
+
+Tree = tree.DecisionTreeClassifier()
+Tree = Tree.fit(features_train, labels_train)
+acc_ = Tree.score(features_test, labels_test)
+
+print "Accuracy 30% train data: ", round(acc_,3)
 
